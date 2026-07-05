@@ -1,0 +1,14 @@
+# reproducible env is recreated from requirements.lock.txt (§7.1a pinned deps)
+.venv/
+__pycache__/
+*.pyc
+
+# large generated artifacts — keep the JSON logs + report + figures, drop bulky binaries
+results/**/*.npz
+results/**/world_model.pt
+results/study_full.log
+results/_val/
+results/_smoke/
+
+# keep: results/**/*.json (per-run metrics + provenance), REPORT.md, figures/*.png
+!results/**/*.json
