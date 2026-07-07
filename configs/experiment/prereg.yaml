@@ -1,0 +1,37 @@
+# Machine-readable mirror of PREREGISTRATION.md §1,§2,§6. FROZEN.
+# The evaluator (src/jepa_arm/eval/hypotheses.py) reads these thresholds mechanically
+# and emits CONFIRMED / DISCONFIRMED / INCONCLUSIVE. Editing this after seeing results
+# invalidates the study (§5.4). Hash recorded in every run's provenance.json.
+
+prereg_version: "prereg-v1"
+
+task:
+  succ_pos_tol_m: 0.05
+  succ_vel_tol_rad_s: 0.10
+
+success_rate_target: 0.70          # SR_TARGET
+
+hypotheses:
+  H1_sample_efficiency:
+    interaction_ratio_max: 0.70    # N_bridge / N_forward-only
+    require_ci_upper_below: 1.0
+    min_arms_pass: 2
+  H2_planning_compute:
+    wallclock_ratio_max: 0.70
+    flops_ratio_max: 0.70
+    quality_band_frac: 0.15        # matched-quality tolerance
+    require_ci_upper_below: 1.0
+  H3_long_horizon:
+    forward_degradation_pp_min: 20.0   # premise: forward must drop >=20pp
+    bridge_max_degradation_pp: 10.0
+  H4_cross_embodiment:
+    margin_over_floor_pp: 15.0
+
+backward_pathway:
+  tau_policy: 0.30                 # policy-confounding flag threshold (normalized)
+  confounded_trust_weight: 0.25    # down-weight applied if flagged (§2.3.1)
+  invertibility_samples: 32        # K backward samples per transition
+  high_destruction_effmodes: 3.0   # eff. mode count >= this -> exclude point estimate
+
+determinism:
+  seeds: [0, 1, 2, 3, 4]

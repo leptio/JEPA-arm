@@ -1,0 +1,42 @@
+# Safety-limit configuration — directive §3.2, §3.5.
+# VERSIONED. Every run records the hash of this file in provenance.json.
+# A run without a recorded safety config is INVALID and discarded (§3.5).
+#
+# All caps are set BELOW manufacturer maxima. In simulation these are enforced by
+# src/jepa_arm/safety.py, which clamps/rejects any commanded OR model-predicted action
+# that would exceed a limit, and LOGS the event (§3.2). On real hardware a lab would
+# additionally wire the §3.1 physical e-stop; that is out of scope here (see HONESTY.md).
+
+version: "safety-v1"
+
+# Global software analogue of the hardware watchdog (§3.4).
+watchdog:
+  max_joint_vel_abs: 1.5          # rad/s hard trip; any joint above -> halt+flag
+  max_ee_force_proxy: 30.0        # N; simulated contact force proxy trip
+  nan_guard: true                 # NaN/inf in state or action -> halt+flag
+  solver_blowup_qacc: 50000.0     # |qacc| above this -> twin outside envelope -> halt
+
+# Fraction of the MJCF-declared joint range kept usable (margin off both ends).
+joint_position_margin_frac: 0.05
+
+# Per-arm caps. Velocity/accel are BELOW datasheet maxima (noted inline).
+arms:
+  fr3:      # Franka Research 3, 7-DoF. Datasheet joint vel up to ~2.0-2.6 rad/s.
+    joint_vel_max: [1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.2]   # rad/s, conservative
+    joint_acc_max: 5.0            # rad/s^2, uniform conservative cap
+    ee_force_max:  20.0           # N proxy
+    speed_cap_frac_initial: 0.5   # §3.3 start reduced; raised only after clean session
+  ur5e:     # Universal Robots UR5e, 6-DoF. Datasheet joint vel ~ pi rad/s.
+    joint_vel_max: [1.0, 1.0, 1.0, 1.2, 1.2, 1.2]
+    joint_acc_max: 5.0
+    ee_force_max:  20.0
+    speed_cap_frac_initial: 0.5
+  gen3:     # Kinova Gen3, 7-DoF.
+    joint_vel_max: [1.0, 1.0, 1.0, 1.0, 1.2, 1.2, 1.2]
+    joint_acc_max: 5.0
+    ee_force_max:  20.0
+    speed_cap_frac_initial: 0.5
+
+# §3.3 speed-cap curriculum: cap may be raised one step only after a full session with
+# ZERO limit violations. Enforced in code; violations reset the cap.
+speed_cap_schedule: [0.5, 0.75, 1.0]
