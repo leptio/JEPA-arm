@@ -1,0 +1,24 @@
+{
+  "seeds": [
+    0,
+    1
+  ],
+  "budgets": [
+    1000,
+    3000
+  ],
+  "n_eval": 5,
+  "epochs_fwd": 10,
+  "epochs_bwd": 8,
+  "mppi_samples": 128,
+  "mppi_horizon": 15,
+  "mppi_iters": 2,
+  "bridge_particles": 64,
+  "bridge_action_samples": 6,
+  "bridge_waypoints": 8,
+  "bridge_cloud": 64,
+  "max_env_steps": 200,
+  "latent_dim": 64,
+  "hidden": 256,
+  "tag": "smoke"
+}

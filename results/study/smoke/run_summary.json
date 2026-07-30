@@ -1,0 +1,10 @@
+{
+  "tag": "smoke",
+  "wall_s": 1128.7,
+  "verdicts": {
+    "H1": "DISCONFIRMED",
+    "H2": "CONFIRMED",
+    "H3": "INCONCLUSIVE",
+    "H4": "DISCONFIRMED"
+  }
+}

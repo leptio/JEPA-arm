@@ -1,0 +1,275 @@
+{
+  "regime": "cross_embodiment",
+  "held_out": {
+    "fr3": {
+      "train_arms": [
+        "ur5e",
+        "gen3"
+      ],
+      "heldout_success": [
+        0.0,
+        0.0
+      ],
+      "floor_success": [
+        1.0,
+        1.0
+      ],
+      "per_seed": [
+        {
+          "held_out": "fr3",
+          "train_arms": [
+            "ur5e",
+            "gen3"
+          ],
+          "seed": 0,
+          "gate": true,
+          "heldout_bridge": {
+            "n_episodes": 5,
+            "success_rate": 0.0,
+            "mean_interactions_success": NaN,
+            "mean_planning_flops": 221863305216.0,
+            "mean_planning_wall_s": 1.2679975509643555,
+            "mean_energy": 113.12362861383653,
+            "mean_jerk": 66.44323194380976,
+            "mean_ee_path_len": 1.4077770068008648,
+            "constraint_violations": 0,
+            "safety_clamps": 128,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": 0.125
+          },
+          "floor": {
+            "n_episodes": 5,
+            "success_rate": 1.0,
+            "mean_interactions_success": 121.0,
+            "mean_planning_flops": 0.0,
+            "mean_planning_wall_s": 0.0,
+            "mean_energy": 74.8801793188446,
+            "mean_jerk": 0.5623553562630483,
+            "mean_ee_path_len": 1.321853473056985,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": NaN
+          }
+        },
+        {
+          "held_out": "fr3",
+          "train_arms": [
+            "ur5e",
+            "gen3"
+          ],
+          "seed": 1,
+          "gate": true,
+          "heldout_bridge": {
+            "n_episodes": 5,
+            "success_rate": 0.0,
+            "mean_interactions_success": NaN,
+            "mean_planning_flops": 221863305216.0,
+            "mean_planning_wall_s": 1.3519734859466552,
+            "mean_energy": 141.92651099676925,
+            "mean_jerk": 117.18906775463729,
+            "mean_ee_path_len": 1.2649926814339885,
+            "constraint_violations": 0,
+            "safety_clamps": 77,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": 0.125
+          },
+          "floor": {
+            "n_episodes": 5,
+            "success_rate": 1.0,
+            "mean_interactions_success": 121.0,
+            "mean_planning_flops": 0.0,
+            "mean_planning_wall_s": 0.0,
+            "mean_energy": 62.5961328188255,
+            "mean_jerk": 0.5037517019029172,
+            "mean_ee_path_len": 1.2628486375440038,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": NaN
+          }
+        }
+      ]
+    },
+    "ur5e": {
+      "train_arms": [
+        "fr3",
+        "gen3"
+      ],
+      "heldout_success": [
+        0.0,
+        0.0
+      ],
+      "floor_success": [
+        0.8,
+        1.0
+      ],
+      "per_seed": [
+        {
+          "held_out": "ur5e",
+          "train_arms": [
+            "fr3",
+            "gen3"
+          ],
+          "seed": 0,
+          "gate": true,
+          "heldout_bridge": {
+            "n_episodes": 5,
+            "success_rate": 0.0,
+            "mean_interactions_success": NaN,
+            "mean_planning_flops": 221863305216.0,
+            "mean_planning_wall_s": 1.3620662689208984,
+            "mean_energy": 427.4914623015653,
+            "mean_jerk": 274.69917682762747,
+            "mean_ee_path_len": 1.8007647506601807,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": 0.125
+          },
+          "floor": {
+            "n_episodes": 5,
+            "success_rate": 0.8,
+            "mean_interactions_success": 261.0,
+            "mean_planning_flops": 0.0,
+            "mean_planning_wall_s": 0.0,
+            "mean_energy": 828.2546058998344,
+            "mean_jerk": 3.067270612755084,
+            "mean_ee_path_len": 2.951194090934201,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": NaN
+          }
+        },
+        {
+          "held_out": "ur5e",
+          "train_arms": [
+            "fr3",
+            "gen3"
+          ],
+          "seed": 1,
+          "gate": true,
+          "heldout_bridge": {
+            "n_episodes": 5,
+            "success_rate": 0.0,
+            "mean_interactions_success": NaN,
+            "mean_planning_flops": 221863305216.0,
+            "mean_planning_wall_s": 1.3960586547851563,
+            "mean_energy": 430.7062778735479,
+            "mean_jerk": 242.08537124545438,
+            "mean_ee_path_len": 2.2719419238292615,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": 0.125
+          },
+          "floor": {
+            "n_episodes": 5,
+            "success_rate": 1.0,
+            "mean_interactions_success": 241.2,
+            "mean_planning_flops": 0.0,
+            "mean_planning_wall_s": 0.0,
+            "mean_energy": 683.1928535078326,
+            "mean_jerk": 2.674945282212083,
+            "mean_ee_path_len": 1.9845512206950757,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": NaN
+          }
+        }
+      ]
+    },
+    "gen3": {
+      "train_arms": [
+        "fr3",
+        "ur5e"
+      ],
+      "heldout_success": [
+        0.0,
+        0.0
+      ],
+      "floor_success": [
+        1.0,
+        1.0
+      ],
+      "per_seed": [
+        {
+          "held_out": "gen3",
+          "train_arms": [
+            "fr3",
+            "ur5e"
+          ],
+          "seed": 0,
+          "gate": true,
+          "heldout_bridge": {
+            "n_episodes": 5,
+            "success_rate": 0.0,
+            "mean_interactions_success": NaN,
+            "mean_planning_flops": 221863305216.0,
+            "mean_planning_wall_s": 1.3623254776000977,
+            "mean_energy": 274.862975875105,
+            "mean_jerk": 154.55456065726534,
+            "mean_ee_path_len": 2.7894456930307774,
+            "constraint_violations": 0,
+            "safety_clamps": 61,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": 0.125
+          },
+          "floor": {
+            "n_episodes": 5,
+            "success_rate": 1.0,
+            "mean_interactions_success": 124.4,
+            "mean_planning_flops": 0.0,
+            "mean_planning_wall_s": 0.0,
+            "mean_energy": 205.65630222696345,
+            "mean_jerk": 2.2129353329813397,
+            "mean_ee_path_len": 2.0451513182293692,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": NaN
+          }
+        },
+        {
+          "held_out": "gen3",
+          "train_arms": [
+            "fr3",
+            "ur5e"
+          ],
+          "seed": 1,
+          "gate": true,
+          "heldout_bridge": {
+            "n_episodes": 5,
+            "success_rate": 0.0,
+            "mean_interactions_success": NaN,
+            "mean_planning_flops": 197858648064.0,
+            "mean_planning_wall_s": 1.3846603393554688,
+            "mean_energy": 42.02613823611303,
+            "mean_jerk": 40.96576752170542,
+            "mean_ee_path_len": 0.7828262828928889,
+            "constraint_violations": 1,
+            "safety_clamps": 494,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": 0.125
+          },
+          "floor": {
+            "n_episodes": 5,
+            "success_rate": 1.0,
+            "mean_interactions_success": 120.2,
+            "mean_planning_flops": 0.0,
+            "mean_planning_wall_s": 0.0,
+            "mean_energy": 86.94156891574755,
+            "mean_jerk": 0.8331753078747621,
+            "mean_ee_path_len": 1.3179866400148796,
+            "constraint_violations": 0,
+            "safety_clamps": 0,
+            "safety_rejections": 0,
+            "waypoint_rejection_frac": NaN
+          }
+        }
+      ]
+    }
+  }
+}
