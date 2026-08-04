@@ -1,0 +1,234 @@
+{
+  "seed": 1,
+  "wall_s": 315.6,
+  "action_sensitivity_gate": true,
+  "action_sensitivity": {
+    "action_determinism": 0.8381922245025635,
+    "mean_action_effect": 0.30345940589904785,
+    "mean_drift": 0.06471368670463562,
+    "mean_step_motion": 0.30876418948173523,
+    "monotone_frac": 1.0,
+    "eps_small": 0.15,
+    "eps_large": 0.3,
+    "latent_std": 0.8427211046218872
+  },
+  "backward_trained": true,
+  "budget_curve": {
+    "bridge": [
+      [
+        1500,
+        0.0
+      ],
+      [
+        4500,
+        0.0
+      ],
+      [
+        9000,
+        0.08333333333333333
+      ]
+    ],
+    "cem_mpc": [
+      [
+        1500,
+        0.08333333333333333
+      ],
+      [
+        4500,
+        0.0
+      ],
+      [
+        9000,
+        0.3333333333333333
+      ]
+    ]
+  },
+  "summaries": {
+    "bridge": {
+      "n_episodes": 12,
+      "success_rate": 0.08333333333333333,
+      "mean_interactions_success": 158.0,
+      "mean_planning_flops": 254810873856.0,
+      "mean_planning_wall_s": 1.4743347962697346,
+      "mean_energy": 156.08410382248977,
+      "mean_jerk": 131.40764146448552,
+      "mean_ee_path_len": 1.2181778460288275,
+      "constraint_violations": 9,
+      "safety_clamps": 143,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.125
+    },
+    "cem_mpc": {
+      "n_episodes": 12,
+      "success_rate": 0.3333333333333333,
+      "mean_interactions_success": 101.0,
+      "mean_planning_flops": 431652372480.0,
+      "mean_planning_wall_s": 2.6034247477849326,
+      "mean_energy": 271.3084379649809,
+      "mean_jerk": 88.62052990397349,
+      "mean_ee_path_len": 2.570493979760412,
+      "constraint_violations": 1,
+      "safety_clamps": 291,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": NaN
+    },
+    "value_fn": {
+      "n_episodes": 12,
+      "success_rate": 0.3333333333333333,
+      "mean_interactions_success": 100.0,
+      "mean_planning_flops": 431456256000.0,
+      "mean_planning_wall_s": 2.7345081766446433,
+      "mean_energy": 273.58708619515113,
+      "mean_jerk": 89.71115253023906,
+      "mean_ee_path_len": 2.566659328229019,
+      "constraint_violations": 1,
+      "safety_clamps": 320,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": NaN
+    },
+    "rrt": {
+      "n_episodes": 12,
+      "success_rate": 0.9166666666666666,
+      "mean_interactions_success": 85.36363636363636,
+      "mean_planning_flops": 0.0,
+      "mean_planning_wall_s": 0.017100016276041668,
+      "mean_energy": 255.1860562633311,
+      "mean_jerk": 9.544745877877986,
+      "mean_ee_path_len": 1.7877868112540434,
+      "constraint_violations": 1,
+      "safety_clamps": 0,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": NaN
+    },
+    "abl_noFV": {
+      "n_episodes": 12,
+      "success_rate": 0.08333333333333333,
+      "mean_interactions_success": 165.0,
+      "mean_planning_flops": 166149881856.0,
+      "mean_planning_wall_s": 1.0160119930903118,
+      "mean_energy": 203.60372541832385,
+      "mean_jerk": 182.89160615808797,
+      "mean_ee_path_len": 1.6331351617117686,
+      "constraint_violations": 8,
+      "safety_clamps": 201,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.0
+    },
+    "abl_interp": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 380090081280.0,
+      "mean_planning_wall_s": 2.336915055910746,
+      "mean_energy": 92.90119095918227,
+      "mean_jerk": 99.35755147684326,
+      "mean_ee_path_len": 1.6464153493690084,
+      "constraint_violations": 5,
+      "safety_clamps": 1,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.3020833333333333
+    },
+    "abl_noW": {
+      "n_episodes": 12,
+      "success_rate": 0.16666666666666666,
+      "mean_interactions_success": 124.0,
+      "mean_planning_flops": 270892425216.0,
+      "mean_planning_wall_s": 1.6027349630991619,
+      "mean_energy": 158.2340896455855,
+      "mean_jerk": 141.56854445859736,
+      "mean_ee_path_len": 1.2846841652814978,
+      "constraint_violations": 8,
+      "safety_clamps": 122,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.125
+    }
+  },
+  "optimality_gaps": {
+    "bridge": {
+      "n_paired": 1,
+      "mean_optimality_gap": 0.5849612826530566,
+      "median_optimality_gap": 0.5849612826530566
+    },
+    "cem_mpc": {
+      "n_paired": 4,
+      "mean_optimality_gap": 0.24927191952852484,
+      "median_optimality_gap": 0.27435076888323917
+    },
+    "value_fn": {
+      "n_paired": 4,
+      "mean_optimality_gap": 0.2377145360678024,
+      "median_optimality_gap": 0.23882196158675284
+    },
+    "abl_noFV": {
+      "n_paired": 1,
+      "mean_optimality_gap": 0.5882944108609522,
+      "median_optimality_gap": 0.5882944108609522
+    },
+    "abl_interp": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    },
+    "abl_noW": {
+      "n_paired": 2,
+      "mean_optimality_gap": 0.37929996093330076,
+      "median_optimality_gap": 0.37929996093330076
+    }
+  },
+  "h3_bins": {
+    "median_dist": 0.874646059323108,
+    "bridge_near": 0.16666666666666666,
+    "bridge_far": 0.0,
+    "cem_near": 0.16666666666666666,
+    "cem_far": 0.5
+  },
+  "sim2sim_robustness_bridge": {
+    "n_episodes": 12,
+    "success_rate": 0.0,
+    "mean_interactions_success": NaN,
+    "mean_planning_flops": 433799847936.0,
+    "mean_planning_wall_s": 2.6232243378957114,
+    "mean_energy": 500.5476553489804,
+    "mean_jerk": 392.83559597812126,
+    "mean_ee_path_len": 3.26616585882295,
+    "constraint_violations": 4,
+    "safety_clamps": 922,
+    "safety_rejections": 0,
+    "waypoint_rejection_frac": 0.125
+  },
+  "backward_guards": {
+    "invertibility": {
+      "effective_modes_mean": 5.330701861996204,
+      "effective_modes_median": 5.389751195907593,
+      "effective_modes_p90": 6.223558616638184,
+      "high_destruction_frac_ge3": 0.998046875,
+      "hist": [
+        0,
+        1,
+        17,
+        140,
+        267,
+        84,
+        3,
+        0,
+        0,
+        0
+      ],
+      "K": 32,
+      "n": 512
+    },
+    "policy_confounding": {
+      "policy_shift_normalized": 0.24672409892082214
+    },
+    "tau_policy": 0.3,
+    "confounded_flag": false,
+    "backward_trust_weight": 1.0,
+    "review_required": false
+  },
+  "n_eval": 12,
+  "budgets": [
+    1500,
+    4500,
+    9000
+  ]
+}

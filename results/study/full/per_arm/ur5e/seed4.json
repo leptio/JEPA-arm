@@ -1,0 +1,234 @@
+{
+  "seed": 4,
+  "wall_s": 391.4,
+  "action_sensitivity_gate": true,
+  "action_sensitivity": {
+    "action_determinism": 0.8411072492599487,
+    "mean_action_effect": 0.24634571373462677,
+    "mean_drift": 0.051894091069698334,
+    "mean_step_motion": 0.241620272397995,
+    "monotone_frac": 1.0,
+    "eps_small": 0.15,
+    "eps_large": 0.3,
+    "latent_std": 0.8481743931770325
+  },
+  "backward_trained": true,
+  "budget_curve": {
+    "bridge": [
+      [
+        1500,
+        0.0
+      ],
+      [
+        4500,
+        0.0
+      ],
+      [
+        9000,
+        0.0
+      ]
+    ],
+    "cem_mpc": [
+      [
+        1500,
+        0.0
+      ],
+      [
+        4500,
+        0.0
+      ],
+      [
+        9000,
+        0.0
+      ]
+    ]
+  },
+  "summaries": {
+    "bridge": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 527282036736.0,
+      "mean_planning_wall_s": 2.666851739088694,
+      "mean_energy": 796.0223111343445,
+      "mean_jerk": 621.5804909932804,
+      "mean_ee_path_len": 2.8748549109357806,
+      "constraint_violations": 0,
+      "safety_clamps": 0,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.125
+    },
+    "cem_mpc": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 588349440000.0,
+      "mean_planning_wall_s": 3.004584630330404,
+      "mean_energy": 582.9872756764911,
+      "mean_jerk": 60.34846422852771,
+      "mean_ee_path_len": 2.354356080518586,
+      "constraint_violations": 0,
+      "safety_clamps": 5,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": NaN
+    },
+    "value_fn": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 588349440000.0,
+      "mean_planning_wall_s": 3.3132734497388205,
+      "mean_energy": 583.391402980633,
+      "mean_jerk": 62.26779857812493,
+      "mean_ee_path_len": 2.3516636322569817,
+      "constraint_violations": 0,
+      "safety_clamps": 3,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": NaN
+    },
+    "rrt": {
+      "n_episodes": 12,
+      "success_rate": 0.8333333333333334,
+      "mean_interactions_success": 289.3,
+      "mean_planning_flops": 0.0,
+      "mean_planning_wall_s": 0.04993013540903727,
+      "mean_energy": 948.7072716960453,
+      "mean_jerk": 9.946471867959662,
+      "mean_ee_path_len": 3.9369525031477806,
+      "constraint_violations": 0,
+      "safety_clamps": 0,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": NaN
+    },
+    "abl_noFV": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 401751146496.0,
+      "mean_planning_wall_s": 2.0736326972643533,
+      "mean_energy": 782.0234259799245,
+      "mean_jerk": 596.2018476624232,
+      "mean_ee_path_len": 2.8304807456580505,
+      "constraint_violations": 0,
+      "safety_clamps": 0,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.0
+    },
+    "abl_interp": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 517763850240.0,
+      "mean_planning_wall_s": 2.713984251022339,
+      "mean_energy": 594.9708297967541,
+      "mean_jerk": 406.2392841800491,
+      "mean_ee_path_len": 2.1693404441533777,
+      "constraint_violations": 0,
+      "safety_clamps": 0,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.4270833333333333
+    },
+    "abl_noW": {
+      "n_episodes": 12,
+      "success_rate": 0.0,
+      "mean_interactions_success": NaN,
+      "mean_planning_flops": 527282036736.0,
+      "mean_planning_wall_s": 2.758586585521698,
+      "mean_energy": 793.0841144053202,
+      "mean_jerk": 619.3061270171015,
+      "mean_ee_path_len": 2.896154522287091,
+      "constraint_violations": 0,
+      "safety_clamps": 0,
+      "safety_rejections": 0,
+      "waypoint_rejection_frac": 0.125
+    }
+  },
+  "optimality_gaps": {
+    "bridge": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    },
+    "cem_mpc": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    },
+    "value_fn": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    },
+    "abl_noFV": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    },
+    "abl_interp": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    },
+    "abl_noW": {
+      "n_paired": 0,
+      "mean_optimality_gap": NaN,
+      "median_optimality_gap": NaN
+    }
+  },
+  "h3_bins": {
+    "median_dist": 0.6702584642389349,
+    "bridge_near": 0.0,
+    "bridge_far": 0.0,
+    "cem_near": 0.0,
+    "cem_far": 0.0
+  },
+  "sim2sim_robustness_bridge": {
+    "n_episodes": 12,
+    "success_rate": 0.0,
+    "mean_interactions_success": NaN,
+    "mean_planning_flops": 527282036736.0,
+    "mean_planning_wall_s": 2.9290099143981934,
+    "mean_energy": 871.6041853566413,
+    "mean_jerk": 692.0962778682133,
+    "mean_ee_path_len": 2.355460088179629,
+    "constraint_violations": 0,
+    "safety_clamps": 1268,
+    "safety_rejections": 0,
+    "waypoint_rejection_frac": 0.125
+  },
+  "backward_guards": {
+    "invertibility": {
+      "effective_modes_mean": 5.3660010867752135,
+      "effective_modes_median": 5.426060438156128,
+      "effective_modes_p90": 6.452420711517335,
+      "high_destruction_frac_ge3": 0.99609375,
+      "hist": [
+        0,
+        2,
+        35,
+        140,
+        220,
+        103,
+        12,
+        0,
+        0,
+        0
+      ],
+      "K": 32,
+      "n": 512
+    },
+    "policy_confounding": {
+      "policy_shift_normalized": 0.10389821231365204
+    },
+    "tau_policy": 0.3,
+    "confounded_flag": false,
+    "backward_trust_weight": 1.0,
+    "review_required": false
+  },
+  "n_eval": 12,
+  "budgets": [
+    1500,
+    4500,
+    9000
+  ]
+}

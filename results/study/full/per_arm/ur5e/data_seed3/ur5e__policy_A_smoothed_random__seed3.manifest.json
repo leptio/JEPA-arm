@@ -1,0 +1,30 @@
+{
+  "arm": "ur5e",
+  "policy": "policy_A_smoothed_random",
+  "seed": 3,
+  "n_episodes": 75,
+  "horizon": 80,
+  "n_transitions": 6000,
+  "n_safety_halts": 0,
+  "env_spec": {
+    "arm": "ur5e",
+    "dof": 6,
+    "control_mode": "velocity",
+    "sim_dt": 0.002,
+    "control_dt": 0.1,
+    "decimation": 50,
+    "ee_site": "attachment_site",
+    "canon_obs_dim": 17,
+    "sync_error_periods": 0.0,
+    "safety_version": "safety-v1"
+  },
+  "safety_summary": {
+    "safety_version": "safety-v1",
+    "speed_cap_frac": 0.5,
+    "n_clamped": 0,
+    "n_rejected": 0,
+    "n_halts": 0,
+    "clean_session": true
+  },
+  "npz": "ur5e__policy_A_smoothed_random__seed3.npz"
+}

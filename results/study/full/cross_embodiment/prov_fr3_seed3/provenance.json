@@ -1,0 +1,71 @@
+{
+  "run_id": "xembod-holdoutfr3-seed3",
+  "seed": 3,
+  "arm": "fr3",
+  "regime": "cross_embodiment",
+  "method": "bridge",
+  "behavior_policy": "policy_A+policy_B(train arms)",
+  "safety_config_path": "configs/safety/default.yaml",
+  "prereg_config_path": "configs/experiment/prereg.yaml",
+  "out_dir": "results\\study\\full\\cross_embodiment\\prov_fr3_seed3",
+  "seed_record": {
+    "seed": 3,
+    "python_hashseed": "3",
+    "torch_version": "2.13.0+cu126",
+    "cuda_available": true,
+    "cudnn_deterministic": true
+  },
+  "scale_notes": {
+    "seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "budgets": [
+      1500,
+      4500,
+      9000
+    ],
+    "n_eval": 12,
+    "epochs_fwd": 25,
+    "epochs_bwd": 18,
+    "mppi_samples": 256,
+    "mppi_horizon": 15,
+    "mppi_iters": 2,
+    "bridge_particles": 128,
+    "bridge_action_samples": 6,
+    "bridge_waypoints": 8,
+    "bridge_cloud": 128,
+    "max_env_steps": 250,
+    "latent_dim": 64,
+    "hidden": 256,
+    "tag": "full"
+  },
+  "extra": {
+    "train_arms": [
+      "ur5e",
+      "gen3"
+    ]
+  },
+  "safety_config_sha256_16": "71807ca741d0f7c8",
+  "prereg_config_sha256_16": "0a8da55c6c5b2b41",
+  "deps": {
+    "python": "3.12.13",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "numpy": "2.2.6",
+    "scipy": "1.18.0",
+    "mujoco": "3.10.0",
+    "torch": "2.13.0+cu126",
+    "gymnasium": "1.3.0",
+    "cuda_device": "NVIDIA GeForce RTX 4080 SUPER"
+  },
+  "argv": [
+    "C:\\Users\\ageof\\JEPA-arm\\src\\jepa_arm\\experiments\\run_experiment.py",
+    "--tag",
+    "full"
+  ],
+  "wall_clock_s": 0.001,
+  "sim_only": true
+}

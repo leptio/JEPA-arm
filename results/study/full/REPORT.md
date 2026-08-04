@@ -1,0 +1,97 @@
+# Results — Double-Ended JEPA Bridge, Multi-Arm Sim Testbed
+
+> **SIMULATION ONLY.** Every arm is a MuJoCo twin; no real-hardware number appears here. See `HONESTY.md`. Numbers are mean ± sample std over seeds.
+
+**Scale executed:** seeds=[0, 1, 2, 3, 4] · budgets=[1500, 4500, 9000] · n_eval=12 · MPPI 256smp×15H×2it · arms with results: ['fr3', 'ur5e', 'gen3'] (5 seeds each).
+
+## Hypothesis verdicts (frozen thresholds, evaluated mechanically)
+
+### H1 — **INCONCLUSIVE**
+- **Baseline:** forward-only CEM/MPC (same latent space)
+- **Falsification test:** ratio >= 1.0 or bridge never reaches SR_TARGET while baseline does, on >=2/3 arms
+  - fr3: mean N_bridge/N_fwd = 1.13 (±0.06, n=4), CI95↑=1.19 → fail
+  - ur5e: mean N_bridge/N_fwd = nan (±nan, n=0), CI95↑=nan → fail
+  - gen3: mean N_bridge/N_fwd = nan (±nan, n=0), CI95↑=nan → fail
+
+### H2 — **DISCONFIRMED**
+- **Baseline:** forward-only shooting (CEM/MPC)
+- **Falsification test:** either resource ratio >= 1.0 at matched quality
+  - FLOPs ratio bridge/fwd = 0.86±0.19 (CI95↑ 0.96)
+  - Wall ratio bridge/fwd  = 0.85±0.20 (CI95↑ 0.95)
+
+### H3 — **INCONCLUSIVE**
+- **Baseline:** forward-only CEM/MPC vs task-distance (compounding-error) bins
+- **Falsification test:** bridge degrades >10pp at long horizon, OR forward does not degrade >=20pp (premise unmet -> inconclusive)
+  - forward degradation near→far = 5.6 pp (premise met: False); bridge degradation = 8.9 pp
+
+### H4 — **DISCONFIRMED**
+- **Baseline:** straight-line joint-interpolation kinematic floor
+- **Falsification test:** held-out success <= floor + 15pp on the held-out arm
+  - held-out fr3: bridge 2% vs floor 100% → margin -98pp (fail)
+  - held-out ur5e: bridge 0% vs floor 92% → margin -92pp (fail)
+  - held-out gen3: bridge 5% vs floor 87% → margin -82pp (fail)
+
+## Per-arm method comparison (success rate, mean±std over seeds)
+
+| method | fr3 | ur5e | gen3 |
+|---|---|---|---|
+| Bridge (double-ended) | 63±17% | 2±4% | 8±8% |
+| Forward-only CEM/MPC (=ABL-noB) | 60±7% | 2±4% | 17±10% |
+| Forward + value fn | 57±11% | 2±4% | 17±10% |
+| RRT-Connect (classical ref) | 100±0% | 92±8% | 83±13% |
+| ABL: no forward-validation | 57±14% | 2±4% | 7±7% |
+| ABL: linear interp bridge | 17±8% | 2±4% | 5±7% |
+| ABL: no mode latent w | 68±12% | 2±4% | 10±11% |
+
+## Planning compute & quality (top budget)
+
+| arm | method | success | interactions(succ) | FLOPs/ep | wall/ep (s) | opt.gap vs RRT | jerk |
+|---|---|---|---|---|---|---|---|
+| fr3 | bridge | 63±17% | 95±17 | 3.71e+11±5.5e+10 | 2.62±1.00 | 0.36±0.27 | 275±28 |
+| fr3 | cem_mpc | 60±7% | 85±16 | 3.54e+11±3.9e+10 | 2.56±1.09 | 0.11±0.19 | 93±15 |
+| fr3 | value_fn | 57±11% | 87±9 | 3.70e+11±5.0e+10 | 2.79±1.27 | 0.11±0.15 | 98±13 |
+| fr3 | rrt | 100±0% | 65±3 | 0.00±0.00 | 0.01±0.00 | 0.00±0.00 | 9±0 |
+| ur5e | bridge | 2±4% | 124±0 | 5.24e+11±7.4e+09 | 2.61±0.14 | 0.78±0.00 | 660±45 |
+| ur5e | cem_mpc | 2±4% | 122±0 | 5.83e+11±1.1e+10 | 2.93±0.14 | -0.04±0.00 | 65±5 |
+| ur5e | value_fn | 2±4% | 122±0 | 5.83e+11±1.1e+10 | 3.20±0.12 | -0.05±0.00 | 66±5 |
+| ur5e | rrt | 92±8% | 266±32 | 0.00±0.00 | 0.03±0.01 | 0.00±0.00 | 9±1 |
+| gen3 | bridge | 8±8% | 135±22 | 3.16e+11±4.8e+10 | 1.77±0.34 | 0.45±0.18 | 210±55 |
+| gen3 | cem_mpc | 17±10% | 123±62 | 5.05e+11±5.9e+10 | 2.90±0.37 | 0.03±0.20 | 107±22 |
+| gen3 | value_fn | 17±10% | 124±60 | 5.27e+11±5.7e+10 | 3.20±0.38 | 0.04±0.22 | 111±17 |
+| gen3 | rrt | 83±13% | 120±25 | 0.00±0.00 | 0.02±0.00 | 0.00±0.00 | 9±1 |
+
+## Ablations (§5.3) — success rate vs full bridge
+
+| arm | bridge(full) | noB(=CEM) | no-fwd-valid | linear-interp | no-w |
+|---|---|---|---|---|---|
+| fr3 | 63±17% | 60±7% | 57±14% | 17±8% | 68±12% |
+| ur5e | 2±4% | 2±4% | 2±4% | 2±4% | 2±4% |
+| gen3 | 8±8% | 17±10% | 7±7% | 5±7% | 10±11% |
+
+_ABL-interp is the [HARD]-prohibited linear-interpolation bridge (§2.4), included only to confirm it underperforms the proper two-sided bridge._
+
+## Backward-pathway report (§6.2)
+
+| arm | policy-shift (τ=0.30) | confounded? | eff. predecessor spread | high-destruction frac | waypoints rejected by fwd-valid |
+|---|---|---|---|---|---|
+| fr3 | 0.120±0.020 | no | 4.88±0.90 | 91±19% | 12±0% |
+| ur5e | 0.104±0.014 | no | 5.41±0.60 | 99±3% | 12±0% |
+| gen3 | 0.235±0.050 | YES ⚠ | 4.14±1.61 | 77±43% | 12±0% |
+
+_'Eff. predecessor spread' is a participation-ratio proxy for how diffuse B's predecessor distribution is (higher = more information destroyed / less point-invertible), per §2.3.2. It is a spread measure, not a literal mode count._
+
+## Sim-to-sim robustness proxy (NOT a sim-to-real number; HONESTY.md §2)
+
+| arm | bridge SR (nominal) | bridge SR (perturbed dynamics) |
+|---|---|---|
+| fr3 | 63±17% | 65±20% |
+| ur5e | 2±4% | 2±4% |
+| gen3 | 8±8% | 7±7% |
+
+## Safety events (§3.2, §8.1)
+
+- Safety-halts (watchdog trips) across all logged eval episodes: **141**
+- Safety clamps (commanded action limited before actuation): **14853**
+
+---
+_Generated by `make_report.py` from logged results; every figure/number traces to a per-cell JSON + provenance.json (§7.2)._

@@ -1,0 +1,30 @@
+{
+  "arm": "fr3",
+  "policy": "policy_B_goal_biased",
+  "seed": 3,
+  "n_episodes": 39,
+  "horizon": 80,
+  "n_transitions": 3120,
+  "n_safety_halts": 0,
+  "env_spec": {
+    "arm": "fr3",
+    "dof": 7,
+    "control_mode": "position",
+    "sim_dt": 0.002,
+    "control_dt": 0.1,
+    "decimation": 50,
+    "ee_site": "attachment_site",
+    "canon_obs_dim": 17,
+    "sync_error_periods": 0.0,
+    "safety_version": "safety-v1"
+  },
+  "safety_summary": {
+    "safety_version": "safety-v1",
+    "speed_cap_frac": 0.5,
+    "n_clamped": 12,
+    "n_rejected": 0,
+    "n_halts": 0,
+    "clean_session": true
+  },
+  "npz": "fr3__policy_B_goal_biased__seed3.npz"
+}
