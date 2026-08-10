@@ -21,6 +21,8 @@ from ..bridge.planner import BridgePlanner, BridgePlannerConfig, MPPIConfig
 from ..baselines.rrt_connect import solve_rrt, RRTConfig
 
 SAFETY = "configs/safety/default.yaml"
+# env kwargs for the study variant being visualized (v2: sin/cos + bounded reachable goals)
+ENV_KW = {"joint_encoding": "sincos", "max_goal_delta": 2.0}
 CAM = {  # per-arm free-camera framing (lookat, distance, azimuth, elevation)
     "fr3":  ([0.30, 0.0, 0.40], 2.2, 135, -20),
     "ur5e": ([0.0, 0.15, 0.40], 2.3, 150, -20),
@@ -87,7 +89,7 @@ def demo_bridge(arm: str, model_path: str, seed: int, max_tries: int = 6):
                                max_env_steps=250, forward_validate=True)
     best = None
     for i in range(max_tries):
-        env = ArmEnv(arm, SAFETY, seed=1000 + i)
+        env = ArmEnv(arm, SAFETY, seed=1000 + i, **ENV_KW)
         env.reset(seed=1000 + i)
         r = BridgePlanner(model, LatentBridge(model, bcfg), pcfg, active_dof=dof).solve(env)
         traj = _traj_from_env(env)
@@ -99,21 +101,24 @@ def demo_bridge(arm: str, model_path: str, seed: int, max_tries: int = 6):
 
 
 def demo_rrt(arm: str, seed: int):
-    env = ArmEnv(arm, SAFETY, seed=seed)
+    env = ArmEnv(arm, SAFETY, seed=seed, **ENV_KW)
     env.reset(seed=seed)
     r = solve_rrt(env, seed=seed, cfg=RRTConfig(max_env_steps=400))
     return _traj_from_env(env), env.ee_goal, r["success"]
 
 
 def main():
-    root = Path("results/study/full")
+    root = Path("results/study/v2")
     out = root / "figures" / "gifs"
-    fr3_model = str(root / "per_arm/fr3/model_seed0_b9000/world_model.pt")
+    fr3_model = str(root / "per_arm/fr3/model_seed0_b18000/world_model.pt")
     jobs = []
-    # method under test on the arm where it works
-    tb, gb, okb = demo_bridge("fr3", fr3_model, seed=0)
-    jobs.append(("fr3", tb, gb, okb, "FR3 - double-ended JEPA bridge",
-                 out / "fr3_bridge.gif"))
+    # the method under test (double-ended JEPA bridge) on ALL THREE arms: FR3/UR5e where it
+    # edges forward-only, Gen3 where it is worse than forward-only.
+    for arm in ["fr3", "ur5e", "gen3"]:
+        mp = str(root / f"per_arm/{arm}/model_seed0_b18000/world_model.pt")
+        tb, gb, okb = demo_bridge(arm, mp, seed=0, max_tries=12)
+        jobs.append((arm, tb, gb, okb, f"{arm.upper()} - double-ended JEPA bridge (v2)",
+                     out / f"{arm}_bridge.gif"))
     # classical reference reaching on all three embodiments
     for arm, sd in [("fr3", 3), ("ur5e", 5), ("gen3", 2)]:
         t, g, ok = demo_rrt(arm, sd)

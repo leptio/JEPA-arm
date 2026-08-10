@@ -58,7 +58,11 @@ class WMConfig:
     hidden: int = 256
     w_dim: int = 8            # mode latent dimensionality (directive w_t / w'_t)
     use_mode_latent: bool = True   # ABL-noW sets this False
-    beta_kl: float = 1e-3
+    beta_kl: float = 1e-3          # forward-predictor KL weight
+    # v2: the backward predictor gets a MUCH stronger (annealed) KL so its posterior tracks
+    # the prior; the decoder then ignores w' on near-invertible transitions instead of
+    # injecting spurious predecessor spread (v1's diffuse-predecessor pathology, FINDINGS.md).
+    beta_kl_backward: float = 1e-3
     vicreg_var: float = 1.0
     vicreg_cov: float = 0.04
     ema_tau: float = 0.01

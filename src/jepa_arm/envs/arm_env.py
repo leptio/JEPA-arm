@@ -40,11 +40,32 @@ class DynParams:
 class ArmEnv:
     def __init__(self, arm: str, safety_config_path: str,
                  control_hz: float = 10.0, seed: int = 0,
-                 dyn: Optional[DynParams] = None):
+                 dyn: Optional[DynParams] = None,
+                 joint_encoding: str = "raw",
+                 obstacle: Optional[dict] = None,
+                 max_goal_delta: Optional[float] = None):
         self.emb: Embodiment = get(arm)
         self.arm = arm
+        self.joint_encoding = joint_encoding
+        self.max_goal_delta = max_goal_delta
         d = importlib.import_module(f"robot_descriptions.{self.emb.mj_module}")
-        self.model = mujoco.MjModel.from_xml_path(d.MJCF_PATH)
+        # v2: optionally inject a static collision obstacle via MjSpec so the reaching task
+        # is no longer trivially solvable by straight-line joint interpolation (FINDINGS.md).
+        self.obstacle = obstacle
+        self.obstacle_geom_id = -1
+        if obstacle is not None:
+            spec = mujoco.MjSpec.from_file(d.MJCF_PATH)
+            g = spec.worldbody.add_geom()
+            g.name = "v2_obstacle"
+            g.type = mujoco.mjtGeom.mjGEOM_BOX
+            g.pos = list(obstacle["pos"])
+            g.size = list(obstacle["size"])
+            g.rgba = [0.85, 0.35, 0.2, 1.0]
+            self.model = spec.compile()
+            self.obstacle_geom_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_GEOM,
+                                                      "v2_obstacle")
+        else:
+            self.model = mujoco.MjModel.from_xml_path(d.MJCF_PATH)
         self.data = mujoco.MjData(self.model)
         self.nq = self.model.nq
         self.nu = self.model.nu
@@ -141,6 +162,10 @@ class ArmEnv:
             c = self.data.contact[i]
             if c.dist >= -pen_tol:
                 continue
+            # obstacle contacts are ALWAYS real collisions (never a modeling artifact)
+            if self.obstacle_geom_id >= 0 and self.obstacle_geom_id in (c.geom1, c.geom2):
+                pen = True
+                break
             b1 = int(self.model.geom_bodyid[c.geom1])
             b2 = int(self.model.geom_bodyid[c.geom2])
             if (min(b1, b2), max(b1, b2)) in self._adj:
@@ -151,9 +176,22 @@ class ArmEnv:
         mujoco.mj_forward(self.model, self.data)
         return not pen
 
-    def sample_reachable_goal(self, rng) -> tuple[np.ndarray, np.ndarray]:
-        for _ in range(200):
-            q = self.random_config(rng)
+    def sample_reachable_goal(self, rng, near: Optional[np.ndarray] = None) -> tuple[np.ndarray, np.ndarray]:
+        """Sample a collision-free goal config. If self.max_goal_delta is set (and `near`
+        given), the goal is drawn within +/- max_goal_delta rad/joint of `near`, so goals
+        stay reachable by a finite-horizon planner within the step budget. This makes task
+        difficulty comparable across arms with very different joint ranges (v2 fix: UR5e/
+        Gen3 have +/-6.28 rad joints, so uniform goals were often unreachably far)."""
+        lo = self.limits.joint_pos_low[: self.nq]
+        hi = self.limits.joint_pos_high[: self.nq]
+        lo = np.where(np.isfinite(lo), lo, -np.pi)
+        hi = np.where(np.isfinite(hi), hi, np.pi)
+        for _ in range(400):
+            if self.max_goal_delta is not None and near is not None:
+                q = np.clip(near + rng.uniform(-self.max_goal_delta, self.max_goal_delta,
+                                               size=self.nq), lo, hi)
+            else:
+                q = self.random_config(rng)
             if self.collision_free(q):
                 ee, _ = self.fk(q)
                 if ee[2] > 0.05:          # keep goal above the base plane
@@ -180,11 +218,11 @@ class ArmEnv:
 
     def obs(self) -> np.ndarray:
         ee_pos, ee_quat = self.ee_pose()
-        return canonical_obs(self.emb, self.q, ee_pos, ee_quat)
+        return canonical_obs(self.emb, self.q, ee_pos, ee_quat, self.joint_encoding)
 
     def goal_obs(self) -> np.ndarray:
         ee_pos, ee_quat = self.fk(self.q_goal)
-        return canonical_obs(self.emb, self.q_goal, ee_pos, ee_quat)
+        return canonical_obs(self.emb, self.q_goal, ee_pos, ee_quat, self.joint_encoding)
 
     # ---- episode API ---------------------------------------------------------
     def reset(self, seed: Optional[int] = None, start: Optional[np.ndarray] = None,
@@ -192,7 +230,12 @@ class ArmEnv:
         if seed is not None:
             self.rng = np.random.default_rng(seed)
         mujoco.mj_resetData(self.model, self.data)
-        q0 = start if start is not None else self._perturbed_home()
+        if start is not None:
+            q0 = start
+        elif self.max_goal_delta is not None:
+            q0 = self._random_start()      # varied start across workspace (bounded-goal mode)
+        else:
+            q0 = self._perturbed_home()
         self.data.qpos[: self.nq] = q0
         self.data.qvel[:] = 0.0
         self.data.ctrl[:] = q0[: self.nu]
@@ -201,11 +244,20 @@ class ArmEnv:
             self.q_goal = goal_q.copy()
             self.ee_goal, _ = self.fk(self.q_goal)
         else:
-            self.q_goal, self.ee_goal = self.sample_reachable_goal(self.rng)
+            self.q_goal, self.ee_goal = self.sample_reachable_goal(self.rng, near=q0)
         self.step_count = 0
         self.log = []
         self._cmd_buffer = []
         return self.obs()
+
+    def _random_start(self) -> np.ndarray:
+        """A varied collision-free start config (used in bounded-goal mode so start/goal
+        pairs cover the workspace while staying a bounded distance apart)."""
+        for _ in range(200):
+            q = self.random_config(self.rng)
+            if self.collision_free(q) and self.fk(q)[0][2] > 0.05:
+                return q
+        return self._perturbed_home()
 
     def _perturbed_home(self) -> np.ndarray:
         for _ in range(100):
@@ -262,12 +314,24 @@ class ArmEnv:
             "ee_pos": ee_pos.tolist(), "ee_quat": ee_quat.tolist(),
             "dist_to_goal": dist,
         })
+        obstacle_hit = self._obstacle_contact()
+        if obstacle_hit:
+            self.safety.note_soft_violation(self.step_count, "obstacle_contact")
         info = {
             "dist": dist, "success": success, "settled": settled,
             "ee_pos": ee_pos, "qvel_norm": float(np.linalg.norm(qvel)),
-            "force": force,
+            "force": force, "obstacle_contact": obstacle_hit,
         }
         return self.obs(), info
+
+    def _obstacle_contact(self, pen_tol: float = 1e-3) -> bool:
+        if self.obstacle_geom_id < 0:
+            return False
+        for i in range(self.data.ncon):
+            c = self.data.contact[i]
+            if c.dist < -pen_tol and self.obstacle_geom_id in (c.geom1, c.geom2):
+                return True
+        return False
 
     @property
     def sync_error_periods(self) -> float:
@@ -277,10 +341,14 @@ class ArmEnv:
         return 0.0
 
     def spec(self) -> dict:
+        from .embodiment import obs_dim
         return {
             "arm": self.arm, "dof": self.nu, "control_mode": self.emb.control_mode,
             "sim_dt": self.sim_dt, "control_dt": self.dt, "decimation": self.decim,
-            "ee_site": self.emb.ee_site, "canon_obs_dim": CANON_OBS_DIM,
+            "ee_site": self.emb.ee_site,
+            "joint_encoding": self.joint_encoding,
+            "canon_obs_dim": obs_dim(self.joint_encoding),
+            "obstacle": self.obstacle,
             "sync_error_periods": self.sync_error_periods,
             "safety_version": self.limits.version,
         }

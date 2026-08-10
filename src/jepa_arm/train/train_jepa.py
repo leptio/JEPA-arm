@@ -80,13 +80,16 @@ def train_world_model(dataset, cfg: WMConfig, out_dir: str, seed: int,
         hist_bwd = []
         t1 = time.time()
         for ep in range(epochs_bwd):
+            # KL annealing: recon learns first, then beta ramps to beta_kl_backward so the
+            # posterior tracks the prior and the decoder stops using w' spuriously.
+            beta = cfg.beta_kl_backward * min(1.0, (ep + 1) / max(1, epochs_bwd // 2))
             agg = {"recon": 0.0, "kl": 0.0, "n": 0}
             for o, a, o2, _ in dl:
                 o, a, o2 = o.to(dev), a.to(dev), o2.to(dev)
                 with torch.no_grad():
                     z = model.encode(o); z2 = model.encode(o2)
                 _, recon, kl = model.backward_pred.elbo(z2, a, z)  # predict z_t from z_{t+1}
-                loss = recon + cfg.beta_kl * kl
+                loss = recon + beta * kl
                 optb.zero_grad(); loss.backward(); optb.step()
                 bs = o.shape[0]
                 agg["recon"] += recon.item() * bs; agg["kl"] += kl.item() * bs

@@ -165,16 +165,29 @@ class BridgePlanner:
         plan_wall = time.time() - t_plan0
 
         # ---- execute on env, tracking validated waypoints (shared executor) ------
-        adv_tol = self.cfg.advance_tol_frac * d_sg / max(1, len(validated) - 1)
-        state = {"wp_idx": 1, "mean_seq": None}
+        # Advance tolerance from the ACTUAL inter-waypoint spacing (not start-goal distance),
+        # with a floor, so it is scale-correct for near and far goals alike. Also cap the
+        # number of steps spent per waypoint so the tracker always progresses to the goal
+        # and never gets stuck on an intermediate waypoint (the bug that tanked the bridge
+        # on bounded-goal tasks).
+        spacings = [float((validated[i + 1] - validated[i]).norm().item())
+                    for i in range(len(validated) - 1)]
+        mean_spacing = (sum(spacings) / len(spacings)) if spacings else 1.0
+        adv_tol = max(0.3, self.cfg.advance_tol_frac * mean_spacing)
+        steps_per_wp = max(6, self.cfg.max_env_steps // (2 * max(1, len(validated) - 1)))
+        state = {"wp_idx": 1, "mean_seq": None, "steps_on_wp": 0}
 
         def decide(z_cur, step):
             target = validated[min(state["wp_idx"], len(validated) - 1)]
             a_t, mean_seq = self.controller.act(z_cur.unsqueeze(0), target.unsqueeze(0),
                                                 state["mean_seq"])
             state["mean_seq"] = torch.cat([mean_seq[1:], mean_seq[-1:]], 0)
-            if float((z_cur - target).norm().item()) < adv_tol and state["wp_idx"] < len(validated) - 1:
+            state["steps_on_wp"] += 1
+            close = float((z_cur - target).norm().item()) < adv_tol
+            timeout = state["steps_on_wp"] >= steps_per_wp
+            if (close or timeout) and state["wp_idx"] < len(validated) - 1:
                 state["wp_idx"] += 1
+                state["steps_on_wp"] = 0
             return a_t[: self.active_dof].cpu().numpy()
 
         m = execute_episode(env, self.model, decide, self.cfg.max_env_steps)

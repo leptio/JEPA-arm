@@ -20,9 +20,12 @@ from .policies import make_policy
 
 def collect(arm: str, policy_name: str, n_episodes: int, horizon: int,
             safety_config: str, seed: int, out_dir: str,
-            control_hz: float = 10.0) -> dict:
+            control_hz: float = 10.0, joint_encoding: str = "raw",
+            obstacle: dict = None, max_goal_delta: float = None) -> dict:
     rng = np.random.default_rng(seed)
-    env = ArmEnv(arm, safety_config, control_hz=control_hz, seed=seed)
+    env = ArmEnv(arm, safety_config, control_hz=control_hz, seed=seed,
+                 joint_encoding=joint_encoding, obstacle=obstacle,
+                 max_goal_delta=max_goal_delta)
     policy = make_policy(policy_name)
 
     obs_t, act_t, obs_tp1 = [], [], []

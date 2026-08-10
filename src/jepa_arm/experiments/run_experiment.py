@@ -62,7 +62,26 @@ class Scale:
     max_env_steps: int = 250
     latent_dim: int = 64
     hidden: int = 256
+    # v2 knobs (v1 defaults preserve original behavior)
+    joint_encoding: str = "raw"          # "sincos" for v2
+    obstacle: dict = None                # {"pos":[..],"size":[..]} obstacle task (unused in v2 final)
+    max_goal_delta: float = None         # v2: bound goal displacement so all arms are reachable
+    w_dim: int = 8
+    beta_kl_backward: float = 1e-3       # v2 raises this to tighten the backward CVAE
     tag: str = "full"
+
+
+def _wmcfg(sc: Scale, use_mode_latent: bool = True) -> WMConfig:
+    from ..envs.embodiment import obs_dim
+    return WMConfig(obs_dim=obs_dim(sc.joint_encoding), latent_dim=sc.latent_dim,
+                    hidden=sc.hidden, w_dim=sc.w_dim, use_mode_latent=use_mode_latent,
+                    beta_kl_backward=sc.beta_kl_backward)
+
+
+def _env(sc: Scale, arm: str, seed: int = 0, dyn=None):
+    return ArmEnv(arm, SAFETY, seed=seed, dyn=dyn,
+                  joint_encoding=sc.joint_encoding, obstacle=sc.obstacle,
+                  max_goal_delta=sc.max_goal_delta)
 
 
 def _mppi(sc: Scale):
@@ -85,7 +104,7 @@ def _bcfg(sc: Scale):
 
 
 # ----------------------------------------------------------------------------- data
-def ensure_data(arm: str, seed: int, max_transitions: int, out_dir: str) -> list:
+def ensure_data(sc: Scale, arm: str, seed: int, max_transitions: int, out_dir: str) -> list:
     """Collect (once) policy-A and policy-B data covering max_transitions; return shards."""
     shards = find_shards(out_dir, arm)
     if shards:
@@ -93,8 +112,10 @@ def ensure_data(arm: str, seed: int, max_transitions: int, out_dir: str) -> list
     horizon = 80
     ep_A = int(np.ceil(0.66 * max_transitions / horizon))
     ep_B = int(np.ceil(0.34 * max_transitions / horizon))
-    collect(arm, "policy_A", ep_A, horizon, SAFETY, seed, out_dir)
-    collect(arm, "policy_B", ep_B, horizon, SAFETY, seed, out_dir)
+    collect(arm, "policy_A", ep_A, horizon, SAFETY, seed, out_dir,
+            joint_encoding=sc.joint_encoding, obstacle=sc.obstacle, max_goal_delta=sc.max_goal_delta)
+    collect(arm, "policy_B", ep_B, horizon, SAFETY, seed, out_dir,
+            joint_encoding=sc.joint_encoding, obstacle=sc.obstacle, max_goal_delta=sc.max_goal_delta)
     return find_shards(out_dir, arm)
 
 
@@ -109,8 +130,8 @@ def subset_dataset(shards: list, n: int, seed: int) -> TransitionDataset:
 
 
 # ----------------------------------------------------------------------------- eval tasks
-def eval_tasks(arm: str, seed: int, n: int) -> list:
-    env = ArmEnv(arm, SAFETY, seed=seed)
+def eval_tasks(sc: Scale, arm: str, seed: int, n: int) -> list:
+    env = _env(sc, arm, seed=seed)
     tasks = []
     for i in range(n):
         env.reset(seed=EVAL_SEED_BASE + seed * 1000 + i)
@@ -121,10 +142,10 @@ def eval_tasks(arm: str, seed: int, n: int) -> list:
     return tasks
 
 
-def run_method_on_tasks(make_solver, arm: str, tasks: list, dyn=None) -> list:
+def run_method_on_tasks(sc: Scale, make_solver, arm: str, tasks: list, dyn=None) -> list:
     eps = []
     for t in tasks:
-        env = ArmEnv(arm, SAFETY, seed=0, dyn=dyn)
+        env = _env(sc, arm, seed=0, dyn=dyn)
         env.reset(start=t["start"], goal_q=t["goal"])
         solver = make_solver(env)
         r = solver(env) if callable(solver) else solver.solve(env)
@@ -190,10 +211,10 @@ def per_arm(arm: str, sc: Scale, root: Path) -> dict:
         seed_everything(seed)
         t0 = time.time()
         data_dir = str(out / f"data_seed{seed}")
-        shards = ensure_data(arm, seed, max(sc.budgets), data_dir)
-        tasks = eval_tasks(arm, seed, sc.n_eval)
+        shards = ensure_data(sc, arm, seed, max(sc.budgets), data_dir)
+        tasks = eval_tasks(sc, arm, seed, sc.n_eval)
 
-        cfg = WMConfig(latent_dim=sc.latent_dim, hidden=sc.hidden)
+        cfg = _wmcfg(sc)
         # --- H1 data-budget sweep: bridge vs cem at each budget ------------------
         budget_curve = {"bridge": [], "cem_mpc": []}
         top_model = None
@@ -203,8 +224,8 @@ def per_arm(arm: str, sc: Scale, root: Path) -> dict:
             tr = train_world_model(ds, cfg, out_dir=mdir, seed=seed,
                                    epochs_fwd=sc.epochs_fwd, epochs_bwd=sc.epochs_bwd)
             model = JEPAWorldModel.load(tr["checkpoint"])
-            br = run_method_on_tasks(method_bridge(model, sc, dof), arm, tasks)
-            ce = run_method_on_tasks(method_cem(model, sc, dof), arm, tasks)
+            br = run_method_on_tasks(sc, method_bridge(model, sc, dof), arm, tasks)
+            ce = run_method_on_tasks(sc, method_cem(model, sc, dof), arm, tasks)
             budget_curve["bridge"].append((b, M.summarize(br)["success_rate"]))
             budget_curve["cem_mpc"].append((b, M.summarize(ce)["success_rate"]))
             if b == max(sc.budgets):
@@ -213,7 +234,7 @@ def per_arm(arm: str, sc: Scale, root: Path) -> dict:
 
         # --- noW model (ABL-noW) at top budget -----------------------------------
         ds_top = subset_dataset(shards, max(sc.budgets), seed)
-        cfg_noW = WMConfig(latent_dim=sc.latent_dim, hidden=sc.hidden, use_mode_latent=False)
+        cfg_noW = _wmcfg(sc, use_mode_latent=False)
         tr_noW = train_world_model(ds_top, cfg_noW, out_dir=str(out / f"model_noW_seed{seed}"),
                                    seed=seed, epochs_fwd=sc.epochs_fwd, epochs_bwd=sc.epochs_bwd)
         model_noW = JEPAWorldModel.load(tr_noW["checkpoint"])
@@ -222,15 +243,15 @@ def per_arm(arm: str, sc: Scale, root: Path) -> dict:
         value = train_value(top_model, ds_top, ValueConfig(), seed=seed)
 
         # --- full method set at top budget ---------------------------------------
-        rrt = run_method_on_tasks(method_rrt(sc), arm, tasks)
+        rrt = run_method_on_tasks(sc, method_rrt(sc), arm, tasks)
         methods_eps = {
             "bridge": top_bridge,
             "cem_mpc": top_cem,                     # == ABL-noB
-            "value_fn": run_method_on_tasks(method_value(top_model, value, sc, dof), arm, tasks),
+            "value_fn": run_method_on_tasks(sc, method_value(top_model, value, sc, dof), arm, tasks),
             "rrt": rrt,
-            "abl_noFV": run_method_on_tasks(method_bridge(top_model, sc, dof, forward_validate=False), arm, tasks),
-            "abl_interp": run_method_on_tasks(method_bridge(top_model, sc, dof, interp=True), arm, tasks),
-            "abl_noW": run_method_on_tasks(method_bridge(model_noW, sc, dof), arm, tasks),
+            "abl_noFV": run_method_on_tasks(sc, method_bridge(top_model, sc, dof, forward_validate=False), arm, tasks),
+            "abl_interp": run_method_on_tasks(sc, method_bridge(top_model, sc, dof, interp=True), arm, tasks),
+            "abl_noW": run_method_on_tasks(sc, method_bridge(model_noW, sc, dof), arm, tasks),
         }
         summaries = {k: M.summarize(v) for k, v in methods_eps.items()}
         opt_gaps = {k: M.optimality_gap(v, rrt) for k, v in methods_eps.items() if k != "rrt"}
@@ -248,7 +269,7 @@ def per_arm(arm: str, sc: Scale, root: Path) -> dict:
         # --- sim2sim robustness proxy (HONESTY.md §2): perturbed-dynamics eval ---
         from ..envs.arm_env import DynParams
         dyn = DynParams(mass_scale=1.2, damping_scale=1.5, gain_scale=0.8, ctrl_latency_steps=1)
-        s2s = M.summarize(run_method_on_tasks(method_bridge(top_model, sc, dof), arm, tasks, dyn=dyn))
+        s2s = M.summarize(run_method_on_tasks(sc, method_bridge(top_model, sc, dof), arm, tasks, dyn=dyn))
 
         # --- backward guards (§2.3.1, §2.3.2) ------------------------------------
         guards = backward_guards(arm, seed, shards, top_model, cfg, sc, out)
@@ -320,7 +341,7 @@ def backward_guards(arm, seed, shards, model, cfg, sc: Scale, out: Path) -> dict
 def cross_embodiment(sc: Scale, root: Path) -> dict:
     out = root / "cross_embodiment"
     out.mkdir(parents=True, exist_ok=True)
-    cfg = WMConfig(latent_dim=sc.latent_dim, hidden=sc.hidden)
+    cfg = _wmcfg(sc)
     result = {"regime": "cross_embodiment", "held_out": {}}
     for held in ALL_ARMS:
         train_arms = [a for a in ALL_ARMS if a != held]
@@ -334,15 +355,15 @@ def cross_embodiment(sc: Scale, root: Path) -> dict:
                 shards = []
                 for a in train_arms:
                     d = str(out / f"data_{a}_seed{seed}")
-                    shards += ensure_data(a, seed, max(sc.budgets), d)
+                    shards += ensure_data(sc, a, seed, max(sc.budgets), d)
                 ds = TransitionDataset(shards)
                 tr = train_world_model(ds, cfg, out_dir=str(out / f"model_holdout_{held}_seed{seed}"),
                                        seed=seed, epochs_fwd=sc.epochs_fwd, epochs_bwd=sc.epochs_bwd)
                 model = JEPAWorldModel.load(tr["checkpoint"])
                 dof = get(held).dof
-                tasks = eval_tasks(held, seed, sc.n_eval)
-                br = run_method_on_tasks(method_bridge(model, sc, dof), held, tasks)
-                fl = run_method_on_tasks(kinematic_floor(dof, sc), held, tasks)
+                tasks = eval_tasks(sc, held, seed, sc.n_eval)
+                br = run_method_on_tasks(sc, method_bridge(model, sc, dof), held, tasks)
+                fl = run_method_on_tasks(sc, kinematic_floor(dof, sc), held, tasks)
                 c = {"held_out": held, "train_arms": train_arms, "seed": seed,
                      "gate": tr["action_sensitivity_gate"],
                      "heldout_bridge": M.summarize(br), "floor": M.summarize(fl)}
@@ -445,16 +466,51 @@ def main(sc: Scale | None = None, root_dir: str = "results/study") -> dict:
     return {"per_arm": per_arm_results, "cross": cross, "verdicts": verdicts, "summary": summary}
 
 
+# v2 obstacle constant kept for reference. NOT used in the v2 final run: an obstacle task
+# was implemented and tested but defeats latent-distance MPPI for BOTH the bridge and
+# forward-only (local minima at the obstacle + fragile contacts tripping the watchdog),
+# yielding all-zero learned SR. Documented in FINDINGS_v2.md; needs a different planner.
+OBSTACLE_V2 = {"pos": [0.40, 0.0, 0.55], "size": [0.06, 0.22, 0.30]}
+
+
+def scale_v2(tag="v2") -> Scale:
+    """Overnight v2 scale (validated recipe, FINDINGS.md fixes):
+      * sin/cos joint encoding (wrapping-robust latent)
+      * BOUNDED goal displacement (delta 2.0 rad/joint) so UR5e/Gen3's huge-range goals are
+        reachable -> forward-only 0->~0.8 on those arms (the real v1 failure cause)
+      * tightened backward CVAE (annealed KL, smaller w) -> invertibility spread ~2 not ~4-5
+      * fixed bridge waypoint-advance (spacing-scaled tol + per-waypoint timeout)
+      * latent 64 (dim 96 mis-scaled the planner), larger planner + longer training/eval.
+    """
+    return Scale(
+        tag=tag, seeds=[0, 1, 2, 3, 4], budgets=[3000, 9000, 18000], n_eval=20,
+        epochs_fwd=50, epochs_bwd=35,
+        mppi_samples=320, mppi_horizon=18, mppi_iters=3,
+        bridge_particles=160, bridge_action_samples=8, bridge_waypoints=8, bridge_cloud=160,
+        max_env_steps=250, latent_dim=64, hidden=384,
+        joint_encoding="sincos", obstacle=None, max_goal_delta=2.0,
+        w_dim=6, beta_kl_backward=0.5,
+    )
+
+
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()
     ap.add_argument("--tag", default="full")
     ap.add_argument("--smoke", action="store_true")
+    ap.add_argument("--v2", action="store_true")
+    ap.add_argument("--v2smoke", action="store_true")
     args = ap.parse_args()
     if args.smoke:
         sc = Scale(tag="smoke", seeds=[0, 1], budgets=[1000, 3000], n_eval=5,
                    epochs_fwd=10, epochs_bwd=8, mppi_samples=128, mppi_iters=2,
                    bridge_particles=64, bridge_cloud=64, max_env_steps=200)
+    elif args.v2smoke:
+        sc = scale_v2(tag="v2smoke")
+        sc.seeds = [0]; sc.budgets = [4000]; sc.n_eval = 5
+        sc.epochs_fwd = 20; sc.epochs_bwd = 15
+    elif args.v2:
+        sc = scale_v2()
     else:
         sc = Scale(tag=args.tag)
     main(sc)

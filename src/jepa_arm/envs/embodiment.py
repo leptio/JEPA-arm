@@ -19,14 +19,26 @@ MAX_DOF = 7
 EE_POSE_DIM = 7                     # ee_pos(3) + ee_quat(4)
 N_ARMS = 3
 
-# Canonical observation layout (shared latent space across embodiments, §4.3b):
-#   [ q_padded(7), ee_pos(3), ee_quat(4), embodiment_onehot(3) ]
-# Joint velocity is deliberately EXCLUDED from the world-model observation: under
-# position control at this timescale the task is quasi-static, so per-step velocity is
-# transient nuisance that swamps the controllable position signal in the latent. It IS
-# still logged by the env for the settle-based success criterion and for safety (§1.4).
-CANON_OBS_DIM = MAX_DOF + EE_POSE_DIM + N_ARMS               # = 17
+# Canonical observation layout (shared latent space across embodiments, §4.3b).
+# Joint velocity is deliberately EXCLUDED (quasi-static position control; velocity is
+# transient nuisance that swamps the controllable position signal). It is still logged by
+# the env for the settle-based success criterion and for safety (§1.4).
+#
+# Two joint encodings:
+#   "raw"    : [ q_padded(7),            ee_pos(3), ee_quat(4), onehot(3) ]  = 17  (v1)
+#   "sincos" : [ sin(q)(7), cos(q)(7),   ee_pos(3), ee_quat(4), onehot(3) ]  = 24  (v2)
+# v2 uses sin/cos so the latent metric respects joint wrapping: FINDINGS.md showed raw
+# angles make +pi and -pi (physically identical on continuous joints) look maximally far
+# apart, which broke latent-distance planning on UR5e/Gen3 for ALL learned methods.
 CANON_ACT_DIM = MAX_DOF                                       # = 7 (masked per arm)
+
+
+def obs_dim(encoding: str = "raw") -> int:
+    base = EE_POSE_DIM + N_ARMS
+    return (2 * MAX_DOF + base) if encoding == "sincos" else (MAX_DOF + base)
+
+
+CANON_OBS_DIM = obs_dim("raw")                               # = 17 (v1 default preserved)
 
 
 @dataclass(frozen=True)
@@ -72,9 +84,14 @@ def pad(vec: np.ndarray, n: int = MAX_DOF) -> np.ndarray:
 
 
 def canonical_obs(emb: Embodiment, q: np.ndarray,
-                  ee_pos: np.ndarray, ee_quat: np.ndarray) -> np.ndarray:
+                  ee_pos: np.ndarray, ee_quat: np.ndarray,
+                  encoding: str = "raw") -> np.ndarray:
+    if encoding == "sincos":
+        joint = np.concatenate([pad(np.sin(q)), pad(np.cos(q))])
+    else:
+        joint = pad(q)
     return np.concatenate([
-        pad(q),
+        joint,
         ee_pos.astype(np.float32), ee_quat.astype(np.float32),
         emb.onehot,
     ]).astype(np.float32)
