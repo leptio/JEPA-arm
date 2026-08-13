@@ -1,0 +1,121 @@
+{
+  "H1": {
+    "hypothesis": "H1_sample_efficiency",
+    "baseline": "forward-only CEM/MPC (same latent space)",
+    "threshold": 0.7,
+    "min_arms_pass": 2,
+    "per_arm": {
+      "fr3": {
+        "mean_ratio": 1.014141414141414,
+        "std": 0.19066576337436741,
+        "n_seeds": 5,
+        "ci95_upper": 1.1812673244331082,
+        "pass": false
+      },
+      "ur5e": {
+        "mean_ratio": 1.0,
+        "std": 0.0,
+        "n_seeds": 5,
+        "ci95_upper": 1.0,
+        "pass": false
+      },
+      "gen3": {
+        "mean_ratio": 1.9600000000000002,
+        "std": 0.7127411872482184,
+        "n_seeds": 5,
+        "ci95_upper": 2.584745196059962,
+        "pass": false
+      }
+    },
+    "n_arms_pass": 0,
+    "n_arms_measurable": 3,
+    "verdict": "DISCONFIRMED",
+    "falsification": "ratio >= 1.0 or bridge never reaches SR_TARGET while baseline does, on >=2/3 arms"
+  },
+  "H2": {
+    "hypothesis": "H2_planning_compute",
+    "baseline": "forward-only shooting (CEM/MPC)",
+    "flops_ratio": {
+      "mean": 1.2357129125089148,
+      "std": 0.21511794832947997,
+      "n": 15
+    },
+    "flops_ci95_upper": 1.3445776147386983,
+    "wallclock_ratio": {
+      "mean": 1.2074199541465596,
+      "std": 0.18382849066007326,
+      "n": 15
+    },
+    "wallclock_ci95_upper": 1.3004500060435211,
+    "threshold": {
+      "flops": 0.7,
+      "wallclock": 0.7
+    },
+    "verdict": "DISCONFIRMED",
+    "falsification": "either resource ratio >= 1.0 at matched quality"
+  },
+  "H3": {
+    "hypothesis": "H3_long_horizon",
+    "baseline": "forward-only CEM/MPC vs task-distance (compounding-error) bins",
+    "forward_degradation_pp": -1.1102230246251565e-14,
+    "bridge_degradation_pp": 4.666666666666652,
+    "premise_met": false,
+    "threshold": {
+      "forward_degradation_pp_min": 20.0,
+      "bridge_max_degradation_pp": 10.0
+    },
+    "verdict": "INCONCLUSIVE",
+    "falsification": "bridge degrades >10pp at long horizon, OR forward does not degrade >=20pp (premise unmet -> inconclusive)"
+  },
+  "H4": {
+    "hypothesis": "H4_cross_embodiment",
+    "baseline": "straight-line joint-interpolation kinematic floor",
+    "threshold_margin_pp": 15.0,
+    "per_arm": {
+      "fr3": {
+        "heldout_success": {
+          "mean": 0.030000000000000006,
+          "std": 0.027386127875258306,
+          "n": 5
+        },
+        "floor_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 5
+        },
+        "margin": -0.97,
+        "pass": false
+      },
+      "ur5e": {
+        "heldout_success": {
+          "mean": 0.2,
+          "std": 0.11180339887498951,
+          "n": 5
+        },
+        "floor_success": {
+          "mean": 0.99,
+          "std": 0.022360679774997918,
+          "n": 5
+        },
+        "margin": -0.79,
+        "pass": false
+      },
+      "gen3": {
+        "heldout_success": {
+          "mean": 0.02,
+          "std": 0.02738612787525831,
+          "n": 5
+        },
+        "floor_success": {
+          "mean": 1.0,
+          "std": 0.0,
+          "n": 5
+        },
+        "margin": -0.98,
+        "pass": false
+      }
+    },
+    "verdict": "DISCONFIRMED",
+    "falsification": "held-out success <= floor + 15pp on the held-out arm"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "arm": "gen3",
+  "policy": "policy_A_smoothed_random",
+  "seed": 4,
+  "n_episodes": 149,
+  "horizon": 80,
+  "n_transitions": 11086,
+  "n_safety_halts": 20,
+  "env_spec": {
+    "arm": "gen3",
+    "dof": 7,
+    "control_mode": "position",
+    "sim_dt": 0.002,
+    "control_dt": 0.1,
+    "decimation": 50,
+    "ee_site": "pinch_site",
+    "joint_encoding": "sincos",
+    "canon_obs_dim": 24,
+    "obstacle": null,
+    "sync_error_periods": 0.0,
+    "safety_version": "safety-v1"
+  },
+  "safety_summary": {
+    "safety_version": "safety-v1",
+    "speed_cap_frac": 0.5,
+    "n_clamped": 2237,
+    "n_rejected": 0,
+    "n_halts": 20,
+    "clean_session": false
+  },
+  "npz": "gen3__policy_A_smoothed_random__seed4.npz"
+}

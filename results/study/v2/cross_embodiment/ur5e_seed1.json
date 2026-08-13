@@ -1,0 +1,37 @@
+{
+  "held_out": "ur5e",
+  "train_arms": [
+    "fr3",
+    "gen3"
+  ],
+  "seed": 1,
+  "gate": true,
+  "heldout_bridge": {
+    "n_episodes": 20,
+    "success_rate": 0.15,
+    "mean_interactions_success": 141.66666666666666,
+    "mean_planning_flops": 2234792448000.0,
+    "mean_planning_wall_s": 3.7926442503929136,
+    "mean_energy": 479.60542670850884,
+    "mean_jerk": 515.2456454790481,
+    "mean_ee_path_len": 2.041294369822317,
+    "constraint_violations": 0,
+    "safety_clamps": 675,
+    "safety_rejections": 0,
+    "waypoint_rejection_frac": 0.125
+  },
+  "floor": {
+    "n_episodes": 20,
+    "success_rate": 1.0,
+    "mean_interactions_success": 121.55,
+    "mean_planning_flops": 0.0,
+    "mean_planning_wall_s": 0.0,
+    "mean_energy": 130.18961112172818,
+    "mean_jerk": 0.48744122807025053,
+    "mean_ee_path_len": 0.8032914281955627,
+    "constraint_violations": 0,
+    "safety_clamps": 0,
+    "safety_rejections": 0,
+    "waypoint_rejection_frac": NaN
+  }
+}

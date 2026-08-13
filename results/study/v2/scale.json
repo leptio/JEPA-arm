@@ -1,0 +1,33 @@
+{
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "budgets": [
+    3000,
+    9000,
+    18000
+  ],
+  "n_eval": 20,
+  "epochs_fwd": 50,
+  "epochs_bwd": 35,
+  "mppi_samples": 320,
+  "mppi_horizon": 18,
+  "mppi_iters": 3,
+  "bridge_particles": 160,
+  "bridge_action_samples": 8,
+  "bridge_waypoints": 8,
+  "bridge_cloud": 160,
+  "max_env_steps": 250,
+  "latent_dim": 64,
+  "hidden": 384,
+  "joint_encoding": "sincos",
+  "obstacle": null,
+  "max_goal_delta": 2.0,
+  "w_dim": 6,
+  "beta_kl_backward": 0.5,
+  "tag": "v2"
+}

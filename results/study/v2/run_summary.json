@@ -1,0 +1,10 @@
+{
+  "tag": "v2",
+  "wall_s": 234.7,
+  "verdicts": {
+    "H1": "DISCONFIRMED",
+    "H2": "DISCONFIRMED",
+    "H3": "INCONCLUSIVE",
+    "H4": "DISCONFIRMED"
+  }
+}

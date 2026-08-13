@@ -1,0 +1,37 @@
+[per_arm fr3 seed0] done in 613.1s bridge_sr=0.70 cem_sr=0.70 gate=True
+[per_arm fr3 seed1] done in 594.8s bridge_sr=0.70 cem_sr=0.65 gate=True
+[per_arm fr3 seed2] done in 555.4s bridge_sr=0.95 cem_sr=0.90 gate=True
+[per_arm fr3 seed3] done in 593.3s bridge_sr=0.75 cem_sr=0.75 gate=True
+[per_arm fr3 seed4] done in 573.6s bridge_sr=0.90 cem_sr=0.80 gate=True
+[per_arm ur5e seed0] done in 745.2s bridge_sr=0.35 cem_sr=0.20 gate=True
+[per_arm ur5e seed1] done in 756.4s bridge_sr=0.15 cem_sr=0.10 gate=True
+[per_arm ur5e seed2] done in 736.6s bridge_sr=0.30 cem_sr=0.30 gate=True
+[per_arm ur5e seed3] done in 721.6s bridge_sr=0.45 cem_sr=0.35 gate=True
+[per_arm ur5e seed4] done in 731.8s bridge_sr=0.40 cem_sr=0.30 gate=True
+[per_arm gen3 seed0] done in 635.4s bridge_sr=0.40 cem_sr=0.55 gate=True
+[per_arm gen3 seed1] done in 648.4s bridge_sr=0.35 cem_sr=0.65 gate=True
+[per_arm gen3 seed2] done in 649.8s bridge_sr=0.40 cem_sr=0.60 gate=True
+[per_arm gen3 seed3] done in 666.0s bridge_sr=0.50 cem_sr=0.70 gate=True
+[per_arm gen3 seed4] done in 598.4s bridge_sr=0.55 cem_sr=0.75 gate=True
+[xembod holdout=fr3 seed0] bridge_sr=0.05 floor_sr=1.00
+[xembod holdout=fr3 seed1] bridge_sr=0.05 floor_sr=1.00
+[xembod holdout=fr3 seed2] bridge_sr=0.00 floor_sr=1.00
+[xembod holdout=fr3 seed3] bridge_sr=0.00 floor_sr=1.00
+[xembod holdout=fr3 seed4] bridge_sr=0.05 floor_sr=1.00
+[xembod holdout=ur5e seed0] bridge_sr=0.40 floor_sr=1.00
+[xembod holdout=ur5e seed1] bridge_sr=0.15 floor_sr=1.00
+[xembod holdout=ur5e seed2] bridge_sr=0.15 floor_sr=1.00
+[xembod holdout=ur5e seed3] bridge_sr=0.15 floor_sr=1.00
+[xembod holdout=ur5e seed4] bridge_sr=0.15 floor_sr=0.95
+[xembod holdout=gen3 seed0] bridge_sr=0.05 floor_sr=1.00
+[xembod holdout=gen3 seed1] bridge_sr=0.05 floor_sr=1.00
+[xembod holdout=gen3 seed2] bridge_sr=0.00 floor_sr=1.00
+[xembod holdout=gen3 seed3] bridge_sr=0.00 floor_sr=1.00
+[xembod holdout=gen3 seed4] bridge_sr=0.00 floor_sr=1.00
+
+=== HYPOTHESIS VERDICTS ===
+  H1: DISCONFIRMED
+  H2: DISCONFIRMED
+  H3: INCONCLUSIVE
+  H4: DISCONFIRMED
+total wall 234.7s
