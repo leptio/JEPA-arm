@@ -24,7 +24,14 @@ confirming that the latent manifold is curved), and the forward world model is s
 proposals are diffuse (flagged high-spread on 77–99% of transitions), partly
 policy-confounded (Gen3 exceeded the pre-registered threshold and was auto-flagged), and
 add planning cost without a reliability gain. We report this negative result plainly, as
-the pre-registration requires, and diagnose the mechanisms. **Every arm is a simulation
+the pre-registration requires, and diagnose the mechanisms. **A second iteration (v2, §10)
+then removes every methodological confound we identified — a wrapping-robust sin/cos
+encoding, reachable (bounded) goals that lift UR5e/Gen3 from ~0 to functional, a tightened
+backward model, and a fixed bridge planner — and re-runs the frozen study on all three now-
+working arms. The bridge fails *more* decisively: H1 moves from inconclusive to
+disconfirmed (it needs equal-to-2× the interactions), H2 flips to 1.24× the compute, and in
+the bounded regime linear interpolation matches the full Schrödinger bridge. The hardened
+methodology strengthens, not softens, the negative result.** **Every arm is a simulation
 twin; no real-hardware claim is made.**
 
 ---
@@ -231,8 +238,9 @@ methods are measured against.*
    Gen3 (continuous wrists) are near-0% for *all* learned methods: +3 rad and −3 rad look
    far apart in latent though physically close, so latent-distance MPPI drives wrapping
    excursions and never settles, while joint-space RRT is unaffected. This hits forward-only
-   and the bridge *equally* (the comparison stays fair) but caps absolute performance. A
-   sin/cos joint encoding is the clear fix.
+   and the bridge *equally* (the comparison stays fair) but caps absolute performance.
+   *(v2 update, §10: sin/cos encoding did not by itself fix this — the dominant cause was
+   unreachably far goals; bounding goal displacement is what restored UR5e/Gen3.)*
 3. **The backward pathway is diffuse and confounded**, as measured (§5) — it cannot sharpen
    plans it cannot localize.
 
@@ -262,14 +270,74 @@ it had.
 
 ---
 
+## 10. Iteration 2 (v2): hardening the methodology, then re-testing
+
+v1's honest weakness is that two of three arms barely worked, so the cross-embodiment and
+long-horizon tests were confounded. v2 (`PREREGISTRATION_v2.md`, thresholds **unchanged**)
+removes every confound we could identify and re-runs the frozen study.
+
+**Fixes (each a defect that hurt methods equally, not a thumb on the scale).**
+(1) **sin/cos joint encoding** — wrapping-robust latent. (2) **Bounded reachable goals**
+(≤ 2.0 rad/joint): re-diagnosis showed UR5e/Gen3's ~0% was caused by *unreachably far*
+goals (±6.28 rad ranges), not the encoding — bounding them lifts forward-only UR5e/Gen3
+from **0.0 → 0.25 / 0.65**. (3) **Tightened backward CVAE** (annealed KL, smaller `w`).
+(4) **Fixed bridge waypoint-advance** (spacing-scaled tolerance + per-waypoint timeout;
+latent reverted to 64) — this alone took the bridge from 0.13 → competitive. These worked:
+all three arms now function and cross-embodiment transfer rose from ~0 to partial.
+
+**Result: with a sound methodology the bridge fails *more* decisively.**
+
+| Hypothesis | v1 | v2 |
+|--|--|--|
+| H1 sample efficiency | INCONCLUSIVE | **DISCONFIRMED** — interactions ratio 1.01 / 1.00 / **1.96** (FR3/UR5e/Gen3); bridge needs ≥ as many, ~2× on Gen3 |
+| H2 planning compute | DISCONFIRMED (0.86×) | **DISCONFIRMED, worse** — bridge **1.24×** FLOPs, 1.21× wall |
+| H3 long-horizon | INCONCLUSIVE | INCONCLUSIVE — forward-only did not degrade (−0.0 pp); no compounding regime |
+| H4 cross-embodiment | DISCONFIRMED | DISCONFIRMED — held-out bridge 0.02–0.20 vs floor 0.99–1.00 |
+
+![v2 success rate by arm and method](results/study/v2/figures/success_by_arm.png)
+*Figure 6 (v2). All three arms now functional. Per-arm bridge vs forward-only:
+FR3 0.80/0.76, UR5e 0.33/0.25, Gen3 **0.44/0.65** — the bridge edges forward-only on two
+arms (within noise) and is clearly worse on Gen3. No consistent advantage.*
+
+**The ablation clincher.** In v1 the proper Schrödinger bridge crushed linear interpolation
+(0.63 vs 0.17). In v2's bounded regime that gap **vanishes**: interpolation matches the full
+bridge and removing the mode latent `w` does not hurt (helps on UR5e/Gen3).
+
+| Arm | Bridge (full) | Linear-interp | No mode-latent `w` |
+|--|--|--|--|
+| FR3 | 0.80 | 0.79 | 0.72 |
+| UR5e | 0.33 | 0.33 | 0.36 |
+| Gen3 | 0.44 | 0.46 | 0.48 |
+
+The v1 interpolation gap was an artifact of *far* goals (a straight latent line overshoots),
+not evidence the backward machinery adds planning power. The confounding guard again flagged
+Gen3 (`τ`>0.30) — the exact arm where the bridge hurt most. An obstacle task (where a two-
+sided bridge *should* help) was implemented and tested but defeats latent-distance MPPI for
+**both** methods (local minima + fragile contacts); that planner, not another free-space
+iteration, is the real frontier. Full v2 analysis: `FINDINGS_v2.md`.
+
+### v2 demonstrations — the bridge on all three embodiments
+
+The method under test, reaching start→goal on each arm (green sphere = goal; banner → SUCCESS):
+
+| FR3 (bridge ≈ fwd) | UR5e (bridge > fwd) | Gen3 (bridge < fwd) |
+|--|--|--|
+| ![FR3 bridge v2](results/study/v2/figures/gifs/fr3_bridge.gif) | ![UR5e bridge v2](results/study/v2/figures/gifs/ur5e_bridge.gif) | ![Gen3 bridge v2](results/study/v2/figures/gifs/gen3_bridge.gif) |
+
+*RRT-Connect references for each arm are in `results/study/v2/figures/gifs/{arm}_rrt.gif`.*
+
+---
+
 ## Reproducibility
 
 Pinned Python 3.12 / torch 2.13+cu126 / MuJoCo 3.10 (Menagerie via `robot_descriptions`).
-`python -m jepa_arm.experiments.run_experiment --tag full` (resumable, per-cell provenance)
-→ `make_report.py` → `figures.py` → `make_gifs.py`. Frozen thresholds in
-`configs/experiment/prereg.yaml`; versioned safety config; every number in
-`results/study/full/REPORT.md` traces to a per-cell JSON + `provenance.json`. See
-`FINDINGS.md` for extended interpretation and `HONESTY.md` for the simulation boundary.
+v1: `python -m jepa_arm.experiments.run_experiment --tag full`; **v2:** `... --v2`
+(resumable, per-cell provenance) → `make_report.py --tag {full,v2}` → `figures.py` →
+`make_gifs.py`. Frozen thresholds in `configs/experiment/prereg.yaml`; versioned safety
+config; every number in `results/study/{full,v2}/REPORT.md` traces to a per-cell JSON +
+`provenance.json`. See `FINDINGS.md` / `FINDINGS_v2.md` for extended interpretation,
+`PREREGISTRATION.md` / `PREREGISTRATION_v2.md` for frozen thresholds, and `HONESTY.md` for
+the simulation boundary.
 
 ## References (selected)
 

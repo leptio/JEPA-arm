@@ -52,11 +52,17 @@ uv pip install -r requirements.txt
 # fast end-to-end smoke (2 seeds, tiny scale)
 PYTHONPATH=src python -m jepa_arm.experiments.run_experiment --smoke
 
-# full study (5 seeds x 3 arms, per-arm + cross-embodiment; resumable)
+# full study v1 (5 seeds x 3 arms, per-arm + cross-embodiment; resumable)
 PYTHONPATH=src python -m jepa_arm.experiments.run_experiment --tag full
 
-# build the report from logged results
-PYTHONPATH=src python -m jepa_arm.experiments.make_report --tag full
+# study v2 (hardened methodology: sin/cos encoding, bounded reachable goals,
+#           tightened backward CVAE, fixed bridge planner)
+PYTHONPATH=src python -m jepa_arm.experiments.run_experiment --v2
+
+# build report + figures + demo GIFs from logged results (per tag)
+PYTHONPATH=src python -m jepa_arm.experiments.make_report --tag v2
+PYTHONPATH=src python -m jepa_arm.experiments.figures     --tag v2
+PYTHONPATH=src python -m jepa_arm.experiments.make_gifs
 ```
 
 Every run writes `provenance.json` (seeds, safety+prereg config hashes, dep versions,
@@ -74,19 +80,38 @@ Verdicts are emitted as `CONFIRMED / DISCONFIRMED / INCONCLUSIVE` by
 `eval/hypotheses.py` reading the frozen thresholds — no post-hoc tuning (§5.4). **Any of
 them may be disconfirmed; that is a valid, reported outcome.**
 
+### Results across two iterations (all negative for the bridge)
+
+| | v1 | v2 (hardened methodology) |
+|--|----|----|
+| H1 sample efficiency | INCONCLUSIVE | **DISCONFIRMED** (interactions ratio ≥ 1.0; 1.96× on Gen3) |
+| H2 planning compute | DISCONFIRMED (0.86×) | **DISCONFIRMED** (bridge 1.24× FLOPs) |
+| H3 long-horizon | INCONCLUSIVE | INCONCLUSIVE |
+| H4 cross-embodiment | DISCONFIRMED | DISCONFIRMED |
+
+**v2** fixed the v1 confounds (sin/cos encoding; **bounded reachable goals** lift UR5e/Gen3
+from ~0 → functional; tightened backward CVAE; fixed bridge planner) — so all three arms
+work and the comparison is fair — and the double-ended bridge still shows **no consistent
+advantage** over forward-only (per-arm bridge/CEM: FR3 0.80/0.76, UR5e 0.33/0.25,
+Gen3 0.44/0.65). In v2's bounded regime, **linear interpolation matches the full bridge**.
+See `PAPER.md` §10, `FINDINGS.md` (v1), and `FINDINGS_v2.md` (v2 + comparison).
+
 ## Layout
 
 ```
-PREREGISTRATION.md   frozen hypotheses + thresholds (§5.1)
+PREREGISTRATION.md   frozen hypotheses + thresholds (§5.1)      [v1]
+PREREGISTRATION_v2.md v2 fixes + same frozen thresholds
+PAPER.md             short paper (v1 study + §10 v2)
+FINDINGS.md / FINDINGS_v2.md   interpretation (v1 / v2 + comparison)
 HONESTY.md           sim-only boundary, proxies, caveats (§0.3, §5.4)
 configs/             safety/ (versioned §3.5) + experiment/ (frozen thresholds)
 src/jepa_arm/
-  envs/              MuJoCo arm twins + embodiment registry
-  models/            JEPA world model (E, F, B)
-  bridge/            two-sided bridge + path-integral planner
+  envs/              MuJoCo arm twins + embodiment registry (sin/cos + bounded-goal + obstacle options)
+  models/            JEPA world model (E, F, B; tightened backward CVAE)
+  bridge/            two-sided bridge + path-integral planner (+ forward-validation)
   baselines/         CEM/MPC, value-fn, RRT-Connect
   train/             curriculum trainer
   eval/              metrics, guards, mechanical hypothesis eval, executor
-  experiments/       orchestrator + report generator
-results/             per-run JSON + provenance + report (generated)
+  experiments/       orchestrator + report/figures/gif generators
+results/study/{full,v2}/   per-run JSON + provenance + REPORT.md + figures/ + gifs/
 ```
